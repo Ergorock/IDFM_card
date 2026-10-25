@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>IDFM card preview</title>
+<style>
+  body { font-family: Roboto, sans-serif; background: #f0f0f0; margin: 0; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px;
+    --primary-color: #03a9f4; --secondary-text-color: #727272; --divider-color: rgba(0,0,0,.12); --secondary-background-color: #f5f5f5; }
+  ha-card { display: block; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  ha-icon { display: inline-block; width: 18px; height: 18px; background: currentColor; border-radius: 3px; opacity: .6; }
+</style>
+</head>
+<body>
+<script>
+  customElements.define("ha-card", class extends HTMLElement {});
+  customElements.define("ha-icon", class extends HTMLElement {});
+</script>
+<script src="../idfm-departures-card.js"></script>
+<script>
+  const dev = "33488fefc14287feb4eba02094c86eba";
+  const base = "sensor.all_house_rerb_idfm_saint_remy_les_chevreuse_saint_remy_les_chevreuse_any_";
+  const now = Date.now();
+  const iso = (m) => new Date(now + m * 60000).toISOString();
+  const deps = [
+    [3, "PIRE", "Saint-Rémy-lès-Chevreuse", "1", "onTime"],
+    [8, "EPEE", "Aéroport Charles de Gaulle 2 (Terminal 2)", "2", "onTime"],
+    [17, "PISE", "Saint-Rémy-lès-Chevreuse", "2", "delayed"],
+    [26, "EPEE", "Aéroport Charles de Gaulle 2 (Terminal 2)", "3", "cancelled"],
+  ];
+  const states = {}, entities = {};
+  deps.forEach(([m, details, destination, platform, status], i) => {
+    states[base + i] = { entity_id: base + i, state: iso(m), last_updated: "x", attributes: { details, destination, direction: destination, platform, status, at_stop: false } };
+    entities[base + i] = { entity_id: base + i, device_id: dev, platform: "idfm" };
+  });
+  const bs = "binary_sensor.all_house_rerb_idfm_b_saint_remy_les_chevreuse_saint_remy_les_chevreuse";
+  states[bs] = { state: "on", last_updated: "x", attributes: { severity: 30, cause: "perturbation", description: "Période: Du vendredi 23 au lundi 26 octobreHoraires: De 21h45 à 06h00La gare de Châtelet Les Halles n'est pas desservie.Motif : mesures de sécurité." } };
+  entities[bs] = { entity_id: bs, device_id: dev, platform: "idfm" };
+  const cal = "calendar.all_house_rerb_idfm_b_saint_remy_les_chevreuse_saint_remy_les_chevreuse_calendar";
+  states[cal] = { state: "on", last_updated: "x", attributes: { message: "RER B : Châtelet Les H. non desservie" } };
+  entities[cal] = { entity_id: cal, device_id: dev, platform: "idfm" };
+  const hass = {
+    states, entities,
+    devices: { [dev]: { name: "B - Saint-Rémy-lès-Chevreuse - Saint-Rémy-lès-Chevreuse -> any", name_by_user: "RerB" } },
+    config: { time_zone: "Europe/Paris" },
+  };
+  const configs = [
+    { title: "Prochains trains", stations: [dev] },
+    { title: "Prochains trains", stations: [{ device: dev, name: "Saint-Rémy" }], hide_terminus: false, style: "board" },
+    { title: "", stations: [dev], layout: "merged", hide_terminus: false, time_display: "time" },
+  ];
+  configs.forEach((c) => {
+    const el = document.createElement("idfm-departures-card");
+    el.setConfig(c);
+    el.hass = hass;
+    document.body.appendChild(el);
+  });
+</script>
+</body>
+</html>
