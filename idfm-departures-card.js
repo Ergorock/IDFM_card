@@ -479,15 +479,17 @@ class IdfmDeparturesCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("idfm-departures-card", IdfmDeparturesCard);
-customElements.define("idfm-departures-card-editor", IdfmDeparturesCardEditor);
+if (!customElements.get("idfm-departures-card")) customElements.define("idfm-departures-card", IdfmDeparturesCard);
+if (!customElements.get("idfm-departures-card-editor")) customElements.define("idfm-departures-card-editor", IdfmDeparturesCardEditor);
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "idfm-departures-card",
-  name: "IDFM – Prochains départs",
-  description: "Prochains trains au départ d'une ou plusieurs gares (intégration Île-de-France Mobilités).",
-  preview: true,
-});
+if (!window.customCards.some((c) => c.type === "idfm-departures-card")) {
+  window.customCards.push({
+    type: "idfm-departures-card",
+    name: "IDFM – Prochains départs",
+    description: "Prochains trains au départ d'une ou plusieurs gares (intégration Île-de-France Mobilités).",
+    preview: true,
+  });
+}
 
 console.info(`%c IDFM-DEPARTURES-CARD %c v${CARD_VERSION} `, "background:#5291CE;color:#fff;font-weight:700", "");
