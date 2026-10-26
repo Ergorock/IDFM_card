@@ -21,19 +21,107 @@ const LINE_COLORS = {
   T12: "#A50034", T13: "#8D5E2A",
 };
 
+const STRINGS = {
+  en: {
+    card_name: "IDFM – Next departures",
+    card_description: "Next trains from one or more stations (Île-de-France Mobilités integration).",
+    default_title: "Next trains",
+    invalid_config: "Invalid configuration",
+    station: "Station",
+    status_onTime: "On time",
+    status_early: "Early",
+    status_delayed: "Delayed",
+    status_cancelled: "Cancelled",
+    status_arrived: "At platform",
+    status_missed: "Missed",
+    status_notExpected: "Not expected",
+    at_platform: "Now",
+    platform: "Track",
+    disruption: "Ongoing disruption",
+    no_departures: "No upcoming departures",
+    select_station: "Select at least one station in the card editor.",
+    label_title: "Title",
+    label_stations: "Stations (IDFM devices)",
+    label_layout: "Layout",
+    label_max_departures: "Number of departures shown",
+    label_time_display: "Time display",
+    label_style: "Style",
+    label_destinations: "Filter destinations (empty = all)",
+    label_show_platform: "Show track",
+    label_show_mission: "Show mission code",
+    label_show_status: "Show status",
+    label_show_disruptions: "Show disruptions",
+    label_hide_terminus: "Hide terminating trains",
+    label_hide_departed: "Hide departed trains",
+    layout_grouped: "Grouped by station",
+    layout_merged: "Single list (all stations)",
+    time_both: "Minutes + time",
+    time_countdown: "Minutes left",
+    time_time: "Departure time",
+    style_modern: "Modern (HA theme)",
+    style_board: "Departure board",
+  },
+  fr: {
+    card_name: "IDFM – Prochains départs",
+    card_description: "Prochains trains au départ d'une ou plusieurs gares (intégration Île-de-France Mobilités).",
+    default_title: "Prochains trains",
+    invalid_config: "Configuration invalide",
+    station: "Gare",
+    status_onTime: "À l'heure",
+    status_early: "En avance",
+    status_delayed: "Retardé",
+    status_cancelled: "Supprimé",
+    status_arrived: "À quai",
+    status_missed: "Manqué",
+    status_notExpected: "Non prévu",
+    at_platform: "À quai",
+    platform: "Voie",
+    disruption: "Perturbation en cours",
+    no_departures: "Aucun départ prévu",
+    select_station: "Sélectionnez au moins une gare dans l'éditeur de la carte.",
+    label_title: "Titre",
+    label_stations: "Gares (appareils IDFM)",
+    label_layout: "Disposition",
+    label_max_departures: "Nombre de départs affichés",
+    label_time_display: "Affichage de l'heure",
+    label_style: "Style",
+    label_destinations: "Filtrer les destinations (vide = toutes)",
+    label_show_platform: "Afficher la voie",
+    label_show_mission: "Afficher le code mission",
+    label_show_status: "Afficher le statut",
+    label_show_disruptions: "Afficher les perturbations",
+    label_hide_terminus: "Masquer les trains terminus",
+    label_hide_departed: "Masquer les trains partis",
+    layout_grouped: "Groupé par gare",
+    layout_merged: "Liste unique (toutes gares)",
+    time_both: "Minutes + heure",
+    time_countdown: "Minutes restantes",
+    time_time: "Heure de départ",
+    style_modern: "Moderne (thème HA)",
+    style_board: "Tableau de gare",
+  },
+};
+
+// Langue de l'interface : celle de Home Assistant (français ou anglais, anglais par défaut)
+let lang = (navigator.language || "").startsWith("fr") ? "fr" : "en";
+const setLang = (hass) => {
+  const l = hass?.locale?.language || hass?.language;
+  if (l) lang = l.startsWith("fr") ? "fr" : "en";
+};
+const t = (key) => STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+
 const STATUS = {
-  onTime: { label: "À l'heure", cls: "ok" },
-  early: { label: "En avance", cls: "ok" },
-  delayed: { label: "Retardé", cls: "warn" },
-  cancelled: { label: "Supprimé", cls: "bad" },
-  arrived: { label: "À quai", cls: "ok" },
-  missed: { label: "Manqué", cls: "bad" },
-  notExpected: { label: "Non prévu", cls: "warn" },
-  noReport: { label: "", cls: "" },
+  onTime: "ok",
+  early: "ok",
+  delayed: "warn",
+  cancelled: "bad",
+  arrived: "ok",
+  missed: "bad",
+  notExpected: "warn",
+  noReport: "",
 };
 
 const DEFAULTS = {
-  title: "Prochains trains",
   layout: "grouped",
   max_departures: 4,
   time_display: "both",
@@ -102,7 +190,7 @@ const stationInfo = (hass, station) => {
     device: station.device,
     line,
     stop,
-    name: station.name || dev?.name_by_user || stop || raw || "Gare",
+    name: station.name || dev?.name_by_user || stop || raw || t("station"),
     stopName: station.name || stop,
     color,
     textColor: textColorFor(color),
@@ -118,8 +206,9 @@ class IdfmDeparturesCard extends HTMLElement {
   }
 
   static getStubConfig(hass) {
+    setLang(hass);
     const first = idfmDevices(hass)[0];
-    return { title: DEFAULTS.title, stations: first ? [first] : [] };
+    return { title: t("default_title"), stations: first ? [first] : [] };
   }
 
   constructor() {
@@ -130,7 +219,7 @@ class IdfmDeparturesCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config) throw new Error("Configuration invalide");
+    if (!config) throw new Error(t("invalid_config"));
     this._config = { ...DEFAULTS, ...config, stations: normalizeStations(config.stations) };
     this._lastKey = "";
     if (this._hass) this._render();
@@ -138,6 +227,7 @@ class IdfmDeparturesCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    setLang(hass);
     // Ne re-rendre que si un état utilisé a changé
     const key = this._stateKey();
     if (key !== this._lastKey) {
@@ -199,7 +289,7 @@ class IdfmDeparturesCard extends HTMLElement {
   }
 
   _fmtTime(d) {
-    return d.toLocaleTimeString("fr-FR", {
+    return d.toLocaleTimeString(this._hass?.locale?.language || "fr-FR", {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: this._hass?.config?.time_zone,
@@ -208,7 +298,7 @@ class IdfmDeparturesCard extends HTMLElement {
 
   _countdown(dep) {
     if (dep.status === "cancelled") return { big: "—", unit: "" };
-    if (dep.atStop) return { big: "À quai", unit: "" };
+    if (dep.atStop) return { big: t("at_platform"), unit: "" };
     const min = Math.floor((dep.time.getTime() - Date.now()) / 60000);
     if (min <= 0) return { big: "0", unit: "min", imminent: true };
     if (min >= 60) return { big: this._fmtTime(dep.time), unit: "" };
@@ -222,7 +312,9 @@ class IdfmDeparturesCard extends HTMLElement {
 
   _row(dep, merged) {
     const c = this._config;
-    const st = STATUS[dep.status] || { label: dep.status, cls: "" };
+    const st = dep.status in STATUS
+      ? { label: dep.status === "noReport" ? "" : t(`status_${dep.status}`), cls: STATUS[dep.status] }
+      : { label: dep.status, cls: "" };
     const cd = this._countdown(dep);
     const time = this._fmtTime(dep.time);
     const cancelled = dep.status === "cancelled";
@@ -244,7 +336,7 @@ class IdfmDeparturesCard extends HTMLElement {
           <div class="dest">${esc(dep.destination)}</div>
           ${meta.length ? `<div class="meta">${meta.join("")}</div>` : ""}
         </div>
-        ${c.show_platform && dep.platform ? `<div class="platform"><span>Voie</span><b>${esc(dep.platform)}</b></div>` : ""}
+        ${c.show_platform && dep.platform ? `<div class="platform"><span>${t("platform")}</span><b>${esc(dep.platform)}</b></div>` : ""}
         <div class="when">${right}</div>
       </div>`;
   }
@@ -252,7 +344,7 @@ class IdfmDeparturesCard extends HTMLElement {
   _disruption(info) {
     const d = info.disruption;
     if (!this._config.show_disruptions || !d || d.state !== "on") return "";
-    const title = info.calendar?.attributes?.message || d.attributes.cause || "Perturbation en cours";
+    const title = info.calendar?.attributes?.message || d.attributes.cause || t("disruption");
     const desc = String(d.attributes.description || "").replace(/([a-zà-ÿ.)])([A-ZÀ-Ý])/g, "$1\n$2");
     const open = this._expanded.has(info.device);
     const sev = Number(d.attributes.severity) >= 40 ? "bad" : "warn";
@@ -272,11 +364,12 @@ class IdfmDeparturesCard extends HTMLElement {
     const c = this._config;
     const infos = c.stations.map((s) => stationInfo(this._hass, s));
     const max = Math.max(1, Number(c.max_departures) || 4);
-    const empty = `<div class="empty">Aucun départ prévu</div>`;
+    const empty = `<div class="empty">${t("no_departures")}</div>`;
+    const title = c.title === undefined ? t("default_title") : c.title;
     let body = "";
 
     if (!infos.length) {
-      body = `<div class="empty">Sélectionnez au moins une gare dans l'éditeur de la carte.</div>`;
+      body = `<div class="empty">${t("select_station")}</div>`;
     } else if (c.layout === "merged") {
       const deps = infos.flatMap((i) => this._collect(i)).sort((a, b) => a.time - b.time).slice(0, max);
       body = infos.map((i) => this._disruption(i)).join("") +
@@ -299,7 +392,7 @@ class IdfmDeparturesCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>${STYLES}</style>
       <ha-card class="${c.style === "board" ? "board" : ""}">
-        ${c.title ? `<div class="header"><ha-icon icon="mdi:train"></ha-icon><span>${esc(c.title)}</span></div>` : ""}
+        ${title ? `<div class="header"><ha-icon icon="mdi:train"></ha-icon><span>${esc(title)}</span></div>` : ""}
         <div class="content">${body}</div>
       </ha-card>`;
 
@@ -366,22 +459,6 @@ const STYLES = `
 
 /* ---------------------------- Éditeur visuel ---------------------------- */
 
-const LABELS = {
-  title: "Titre",
-  stations: "Gares (appareils IDFM)",
-  layout: "Disposition",
-  max_departures: "Nombre de départs affichés",
-  time_display: "Affichage de l'heure",
-  style: "Style",
-  destinations: "Filtrer les destinations (vide = toutes)",
-  show_platform: "Afficher la voie",
-  show_mission: "Afficher le code mission",
-  show_status: "Afficher le statut",
-  show_disruptions: "Afficher les perturbations",
-  hide_terminus: "Masquer les trains terminus",
-  hide_departed: "Masquer les trains partis",
-};
-
 class IdfmDeparturesCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
@@ -390,6 +467,7 @@ class IdfmDeparturesCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    setLang(hass);
     if (this._form) {
       this._form.hass = hass;
     } else {
@@ -416,18 +494,18 @@ class IdfmDeparturesCardEditor extends HTMLElement {
       {
         type: "grid", name: "", schema: [
           { name: "layout", selector: { select: { mode: "dropdown", options: [
-            { value: "grouped", label: "Groupé par gare" },
-            { value: "merged", label: "Liste unique (toutes gares)" },
+            { value: "grouped", label: t("layout_grouped") },
+            { value: "merged", label: t("layout_merged") },
           ] } } },
           { name: "max_departures", selector: { number: { min: 1, max: 20, mode: "box" } } },
           { name: "time_display", selector: { select: { mode: "dropdown", options: [
-            { value: "both", label: "Minutes + heure" },
-            { value: "countdown", label: "Minutes restantes" },
-            { value: "time", label: "Heure de départ" },
+            { value: "both", label: t("time_both") },
+            { value: "countdown", label: t("time_countdown") },
+            { value: "time", label: t("time_time") },
           ] } } },
           { name: "style", selector: { select: { mode: "dropdown", options: [
-            { value: "modern", label: "Moderne (thème HA)" },
-            { value: "board", label: "Tableau de gare" },
+            { value: "modern", label: t("style_modern") },
+            { value: "board", label: t("style_board") },
           ] } } },
         ],
       },
@@ -449,7 +527,7 @@ class IdfmDeparturesCardEditor extends HTMLElement {
     if (!this._hass || !this._config) return;
     if (!this._form) {
       this._form = document.createElement("ha-form");
-      this._form.computeLabel = (s) => LABELS[s.name] || s.name;
+      this._form.computeLabel = (s) => (STRINGS.en[`label_${s.name}`] ? t(`label_${s.name}`) : s.name);
       this._form.addEventListener("value-changed", (ev) => this._changed(ev));
       this.appendChild(this._form);
     }
@@ -471,7 +549,7 @@ class IdfmDeparturesCardEditor extends HTMLElement {
     });
     // N'enregistre pas les valeurs par défaut pour garder un YAML lisible
     Object.keys(DEFAULTS).forEach((k) => {
-      if (k !== "title" && JSON.stringify(value[k]) === JSON.stringify(DEFAULTS[k])) delete value[k];
+      if (JSON.stringify(value[k]) === JSON.stringify(DEFAULTS[k])) delete value[k];
     });
     this._config = value;
     this._form.schema = this._schema();
@@ -486,8 +564,8 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((c) => c.type === "idfm-departures-card")) {
   window.customCards.push({
     type: "idfm-departures-card",
-    name: "IDFM – Prochains départs",
-    description: "Prochains trains au départ d'une ou plusieurs gares (intégration Île-de-France Mobilités).",
+    name: t("card_name"),
+    description: t("card_description"),
     preview: true,
   });
 }

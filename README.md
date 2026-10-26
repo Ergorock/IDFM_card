@@ -1,39 +1,43 @@
-# IDFM – Prochains départs (`custom:idfm-departures-card`)
+# IDFM – Next departures (`custom:idfm-departures-card`)
 
-Carte Lovelace qui affiche les prochains trains d'une ou plusieurs gares à partir de l'intégration **idfm** (Île-de-France Mobilités).
+*[Version française](README.fr.md)*
+
+Lovelace card that shows the next trains from one or more stations, using the **idfm** integration (Île-de-France Mobilités).
+
+The interface is available in English and French (it follows the Home Assistant language).
 
 ## Installation
 
-### HACS (dépôt personnalisé)
+### HACS (custom repository)
 
-1. HACS → menu ⋮ → *Dépôts personnalisés* → ajoutez `https://github.com/Ergorock/IDFM_card`, catégorie **Dashboard**.
-2. Installez **IDFM Departures Card**, puis rechargez le navigateur.
+1. HACS → ⋮ menu → *Custom repositories* → add `https://github.com/Ergorock/IDFM_card`, category **Dashboard**.
+2. Install **IDFM Departures Card**, then reload your browser.
 
-### Manuelle
+### Manual
 
-1. Copiez `idfm-departures-card.js` dans `config/www/idfm-departures-card.js`.
-2. *Paramètres → Tableaux de bord → ⋮ → Ressources* : ajoutez `/local/idfm-departures-card.js?v=1.0.0` (type *Module JavaScript*).
+1. Copy `idfm-departures-card.js` to `config/www/idfm-departures-card.js`.
+2. *Settings → Dashboards → ⋮ → Resources*: add `/local/idfm-departures-card.js?v=1.0.0` (type *JavaScript module*).
 
-Après une mise à jour, faites un rafraîchissement forcé du navigateur (Ctrl+Maj+R).
+After an update, force-refresh your browser (Ctrl+Shift+R).
 
-## Utilisation
+## Usage
 
-Dans un tableau de bord : **Ajouter une carte → IDFM – Prochains départs**. Tous les réglages se font dans l'éditeur visuel.
+In a dashboard: **Add card → IDFM – Next departures**. Everything is set in the visual editor.
 
-| Option | Défaut | Description |
+| Option | Default | Description |
 |---|---|---|
-| `title` | `Prochains trains` | Titre de la carte (vide = aucun titre) |
-| `stations` | — | Liste des appareils IDFM (une gare = un appareil de l'intégration) |
-| `layout` | `grouped` | `grouped` (une section par gare) ou `merged` (une seule liste triée) |
-| `max_departures` | `4` | Nombre de départs affichés (par gare en mode `grouped`) |
-| `time_display` | `both` | `both`, `countdown` (minutes) ou `time` (heure) |
-| `style` | `modern` | `modern` (thème HA) ou `board` (tableau de gare) |
-| `destinations` | `[]` | Ne garder que ces destinations (vide = toutes) |
-| `show_platform` / `show_mission` / `show_status` / `show_disruptions` | `true` | Éléments affichés |
-| `hide_terminus` | `true` | Masque les trains dont la gare est le terminus (arrivées) |
-| `hide_departed` | `true` | Masque les trains déjà partis |
+| `title` | `Next trains` | Card title (empty = no title) |
+| `stations` | — | List of IDFM devices (one station = one device of the integration) |
+| `layout` | `grouped` | `grouped` (one section per station) or `merged` (a single sorted list) |
+| `max_departures` | `4` | Number of departures shown (per station in `grouped` mode) |
+| `time_display` | `both` | `both`, `countdown` (minutes) or `time` (clock time) |
+| `style` | `modern` | `modern` (HA theme) or `board` (station departure board) |
+| `destinations` | `[]` | Only keep these destinations (empty = all) |
+| `show_platform` / `show_mission` / `show_status` / `show_disruptions` | `true` | Elements shown |
+| `hide_terminus` | `true` | Hides trains whose terminus is the station (arrivals) |
+| `hide_departed` | `true` | Hides trains that have already left |
 
-En YAML, une gare peut aussi être un objet pour surcharger son nom ou la couleur de la ligne :
+In YAML, a station can also be an object to override its name or the line color:
 
 ```yaml
 type: custom:idfm-departures-card
@@ -44,7 +48,7 @@ stations:
 layout: grouped
 ```
 
-Le nombre de départs disponibles dépend du nombre de capteurs créés par l'intégration (4 par défaut).
-Pour ajouter une gare : **Paramètres → Appareils et services → Île-de-France Mobilités → Ajouter une entrée**.
+The number of available departures depends on the number of sensors created by the integration (4 by default).
+To add a station: **Settings → Devices & services → Île-de-France Mobilités → Add entry**.
 
-`test/preview.html` permet de prévisualiser la carte hors de Home Assistant avec des données fictives.
+`test/preview.html` previews the card outside Home Assistant with mock data.
