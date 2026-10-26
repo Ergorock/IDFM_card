@@ -6,6 +6,12 @@ Lovelace card that shows the next trains from one or more stations, using the **
 
 The interface is available in English and French (it follows the Home Assistant language).
 
+## Screenshots
+
+![Next departures](https://raw.githubusercontent.com/Ergorock/IDFM_card/main/images/card.png)
+
+![Visual editor](https://raw.githubusercontent.com/Ergorock/IDFM_card/main/images/editor.png)
+
 ## Installation
 
 ### HACS (custom repository)

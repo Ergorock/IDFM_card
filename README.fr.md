@@ -6,6 +6,12 @@ Carte Lovelace qui affiche les prochains trains d'une ou plusieurs gares à part
 
 L'interface est disponible en français et en anglais (elle suit la langue de Home Assistant).
 
+## Captures d'écran
+
+![Prochains départs](https://raw.githubusercontent.com/Ergorock/IDFM_card/main/images/card.png)
+
+![Éditeur visuel](https://raw.githubusercontent.com/Ergorock/IDFM_card/main/images/editor.png)
+
 ## Installation
 
 ### HACS (dépôt personnalisé)
